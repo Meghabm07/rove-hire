@@ -3,5 +3,6 @@ node_modules
 data/store.json
 public/uploads
 server/dist
+server/uploads
 *.log
 .env*.local

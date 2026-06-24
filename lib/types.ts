@@ -16,6 +16,35 @@ export type TimelineEvent = {
   createdAt: string;
 };
 
+export type InterviewType = "Screening" | "Technical";
+export type InterviewStatus = "Scheduled" | "Completed";
+export type InterviewRecommendation = "Hire" | "No Hire" | "Maybe";
+
+export type Interview = {
+  id: string;
+  candidateId: string;
+  candidateName?: string;
+  roleTitle?: string;
+  scheduledAt: string;
+  type: InterviewType;
+  interviewerName: string;
+  notes?: string;
+  status: InterviewStatus;
+  recommendation?: InterviewRecommendation;
+  feedbackNote?: string;
+  completedAt?: string;
+  createdAt: string;
+};
+
+export type OfferDocument = {
+  id: string;
+  candidateId: string;
+  type: "Offer Letter" | "NDA";
+  fileName: string;
+  path: string;
+  createdAt: string;
+};
+
 export type Candidate = {
   id: string;
   jobId: string;
@@ -39,6 +68,7 @@ export type Candidate = {
     salaryExpectation?: string;
     linkedinUrl?: string;
   };
+  offerDocuments?: OfferDocument[];
   rejectionReason?: string;
   timeline: TimelineEvent[];
 };
@@ -55,4 +85,5 @@ export type JobOpening = {
 export type Store = {
   jobs: JobOpening[];
   candidates: Candidate[];
+  interviews: Interview[];
 };
