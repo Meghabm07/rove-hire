@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BriefcaseBusiness, LayoutDashboard, LogOut, UsersRound } from "lucide-react";
+import { BriefcaseBusiness, CalendarDays, LayoutDashboard, LogOut, UsersRound } from "lucide-react";
 import { signOutAction } from "@/app/actions";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -16,6 +16,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </Link>
           <Link href="/jobs">
             <BriefcaseBusiness size={18} /> Jobs
+          </Link>
+          <Link href="/interviews">
+            <CalendarDays size={18} /> Interviews
           </Link>
           <Link href="/candidates/new">
             <UsersRound size={18} /> Add Candidate

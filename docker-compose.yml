@@ -24,6 +24,8 @@ services:
       CORS_ORIGIN: http://localhost:3000
     ports:
       - "4000:4000"
+    volumes:
+      - server-uploads:/server/uploads
     depends_on:
       postgres:
         condition: service_healthy
@@ -40,3 +42,4 @@ services:
 
 volumes:
   postgres-data:
+  server-uploads:

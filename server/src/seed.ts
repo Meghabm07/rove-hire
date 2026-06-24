@@ -1,4 +1,4 @@
-import type { Candidate, JobOpening, Store, TimelineEvent } from "./types.js";
+import type { Candidate, Interview, JobOpening, Store, TimelineEvent } from "./types.js";
 
 function daysAgo(days: number) {
   const date = new Date();
@@ -126,4 +126,30 @@ const candidates: Candidate[] = [
   }
 ];
 
-export const seedStore: Store = { jobs, candidates };
+const interviews: Interview[] = [
+  {
+    id: "int-maya-technical",
+    candidateId: "cand-maya",
+    scheduledAt: daysAgo(-2),
+    type: "Technical",
+    interviewerName: "Priya Nair",
+    notes: "Focus on frontend architecture and product tradeoffs.",
+    status: "Scheduled",
+    createdAt: daysAgo(0)
+  },
+  {
+    id: "int-noah-screening",
+    candidateId: "cand-noah",
+    scheduledAt: daysAgo(6),
+    type: "Screening",
+    interviewerName: "Elena Park",
+    notes: "Strong product instincts and clear communication.",
+    status: "Completed",
+    recommendation: "Hire",
+    feedbackNote: "Move forward. Noah has strong ownership habits and has shipped similar internal tools.",
+    completedAt: daysAgo(6),
+    createdAt: daysAgo(8)
+  }
+];
+
+export const seedStore: Store = { jobs, candidates, interviews };
