@@ -1,7 +1,8 @@
 .next
 node_modules
-data/store.json
-public/uploads
+server/node_modules
 server/dist
+.git
+data
 *.log
 .env*.local

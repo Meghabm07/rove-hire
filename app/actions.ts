@@ -2,13 +2,17 @@
 
 import { redirect } from "next/navigation";
 import { signIn, signOut } from "@/lib/auth";
-import { createTimelineEvent, readStore, touchCandidate, writeStore } from "@/lib/data";
+import { createJob, updateJobStatus } from "@/lib/data";
 
-export async function signInAction(_previousState: { error?: string }, formData: FormData) {
+type SignInState = {
+  error: string | null;
+};
+
+export async function signInAction(_previousState: SignInState, formData: FormData): Promise<SignInState> {
   const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
 
-  if (!signIn(email, password)) {
+  if (!(await signIn(email, password))) {
     return { error: "The email or password does not match the HR account." };
   }
 
@@ -16,7 +20,7 @@ export async function signInAction(_previousState: { error?: string }, formData:
 }
 
 export async function signOutAction() {
-  signOut();
+  await signOut();
   redirect("/signin");
 }
 
@@ -33,27 +37,18 @@ export async function createJobAction(formData: FormData) {
     redirect("/jobs/new?error=missing");
   }
 
-  const store = await readStore();
-  store.jobs.unshift({
-    id: `job-${crypto.randomUUID()}`,
+  await createJob({
     title,
     description,
     requiredSkills,
-    status,
-    createdAt: new Date().toISOString()
+    status
   });
-  await writeStore(store);
   redirect("/jobs");
 }
 
 export async function updateJobStatusAction(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   const status = String(formData.get("status") ?? "Open") === "Closed" ? "Closed" : "Open";
-  const store = await readStore();
-  const job = store.jobs.find((item) => item.id === id);
-  if (job) {
-    job.status = status;
-    await writeStore(store);
-  }
+  await updateJobStatus(id, status);
   redirect("/jobs");
 }

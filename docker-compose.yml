@@ -1,0 +1,42 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: rove_hire
+      POSTGRES_USER: rove
+      POSTGRES_PASSWORD: rove_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rove -d rove_hire"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  server:
+    build:
+      context: ./server
+    environment:
+      DATABASE_URL: postgres://rove:rove_password@postgres:5432/rove_hire
+      PORT: 4000
+      CORS_ORIGIN: http://localhost:3000
+    ports:
+      - "4000:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+    environment:
+      INTERNAL_API_URL: http://server:4000/api
+    ports:
+      - "3000:3000"
+    depends_on:
+      - server
+
+volumes:
+  postgres-data:

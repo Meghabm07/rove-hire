@@ -5,8 +5,8 @@ import { AppShell } from "@/components/AppShell";
 import { isSignedIn } from "@/lib/auth";
 import { createJobAction } from "@/app/actions";
 
-export default function NewJobPage({ searchParams }: { searchParams?: { error?: string } }) {
-  if (!isSignedIn()) redirect("/signin");
+export default async function NewJobPage({ searchParams }: { searchParams?: { error?: string } }) {
+  if (!(await isSignedIn())) redirect("/signin");
 
   return (
     <AppShell>

@@ -13,7 +13,7 @@ function SubmitButton() {
 }
 
 export default function SignInPage() {
-  const [state, formAction] = useFormState(signInAction, {});
+  const [state, formAction] = useFormState(signInAction, { error: null });
 
   return (
     <main className="auth-shell">

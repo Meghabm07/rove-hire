@@ -22,7 +22,7 @@ export default async function DashboardPage({
 }: {
   searchParams?: { q?: string; status?: string };
 }) {
-  if (!isSignedIn()) redirect("/signin");
+  if (!(await isSignedIn())) redirect("/signin");
 
   const store = await readStore();
   const query = (searchParams?.q ?? "").trim().toLowerCase();

@@ -7,7 +7,7 @@ import { isSignedIn } from "@/lib/auth";
 import { findJob, readStore } from "@/lib/data";
 
 export default async function CandidateProfilePage({ params }: { params: { id: string } }) {
-  if (!isSignedIn()) redirect("/signin");
+  if (!(await isSignedIn())) redirect("/signin");
 
   const store = await readStore();
   const candidate = store.candidates.find((item) => item.id === params.id);

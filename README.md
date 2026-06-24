@@ -1,6 +1,6 @@
 # ROVE Hire
 
-ROVE Hire is a Next.js internal recruitment tool for managing candidates from resume intake through candidate form submission. This implementation currently covers features 1 through 4 from the assignment brief.
+ROVE Hire is a Next.js internal recruitment tool for managing candidates from resume intake through candidate form submission. This implementation currently covers the HR dashboard and job-opening flows, with persistence moved behind a separate API service.
 
 ## Test HR Login
 
@@ -9,7 +9,9 @@ ROVE Hire is a Next.js internal recruitment tool for managing candidates from re
 
 ## Tech Choices
 
-The app uses Next.js App Router with server actions and route handlers so the HR and public candidate experiences can live in one deployable codebase. For this assignment slice, data is persisted in a JSON file and uploads are stored on disk, which keeps the product easy to review locally; for production I would move these to Postgres and object storage.
+The frontend uses Next.js App Router with server actions for form flows. The backend lives in `server/` as an Express API connected to Postgres via `pg`; Postgres is a good fit here because candidate, job, and timeline data are relational and need durable querying as the product grows.
+
+Docker Compose runs three services: `web`, `server`, and `postgres`. For a free deployment path, use Render or Railway for the Dockerized web/API services and a free Neon or Supabase Postgres database, then set `DATABASE_URL` and `INTERNAL_API_URL` in the host environment.
 
 ## Run Locally
 
@@ -17,3 +19,19 @@ The app uses Next.js App Router with server actions and route handlers so the HR
 npm install
 npm run dev
 ```
+
+In another terminal, run the backend locally:
+
+```bash
+cd server
+npm install
+npm run dev
+```
+
+Or run the full stack with Docker:
+
+```bash
+docker compose up --build
+```
+
+The frontend expects the backend at `INTERNAL_API_URL`, defaulting to `http://localhost:4000/api`.

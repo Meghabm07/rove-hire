@@ -7,7 +7,7 @@ import { readStore } from "@/lib/data";
 import { updateJobStatusAction } from "../actions";
 
 export default async function JobsPage() {
-  if (!isSignedIn()) redirect("/signin");
+  if (!(await isSignedIn())) redirect("/signin");
 
   const store = await readStore();
 
