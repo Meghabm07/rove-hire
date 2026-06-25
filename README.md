@@ -15,6 +15,10 @@ Docker Compose runs three services: `web`, `server`, and `postgres`. Resumes and
 
 For a free deployment path, use Render or Railway for the Dockerized API, Vercel or Render for the frontend, and a free Neon or Supabase Postgres database. Set `DATABASE_URL` on the backend, `INTERNAL_API_URL` on the frontend for server-to-server calls, and `NEXT_PUBLIC_SERVER_URL` so browser download links point at the public API host.
 
+## DB Schema
+
+![alt text](image.png)
+
 ## Run Locally
 
 ```bash
