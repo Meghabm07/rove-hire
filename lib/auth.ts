@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 const SESSION_COOKIE = "rove_hire_session";
 const apiBaseUrl = process.env.INTERNAL_API_URL ?? "http://localhost:4000/api";
 
-function useSecureCookies() {
+function shouldUseSecureCookies() {
   if (process.env.COOKIE_SECURE) {
     return process.env.COOKIE_SECURE === "true";
   }
@@ -50,11 +50,14 @@ export async function signIn(email: string, password: string) {
   cookies().set(SESSION_COOKIE, session.token, {
     httpOnly: true,
     sameSite: "lax",
-    secure: useSecureCookies(),
+    secure: shouldUseSecureCookies(),
     path: "/",
     expires: new Date(session.expiresAt),
     maxAge: 60 * 60 * 8
   });
+
+  console.log("Session cookie set:", cookies().get(SESSION_COOKIE)?.value);
+  console.log("Backend response:", session);
   return true;
 }
 
