@@ -6,19 +6,10 @@ import { StatusPill } from "@/components/StatusPill";
 import { isSignedIn } from "@/lib/auth";
 import { findJob, readStore } from "@/lib/data";
 import { CandidateStatus } from "@/lib/types";
-
-const statuses: Array<CandidateStatus | "All"> = [
-  "All",
-  "Applied",
-  "Form Submitted",
-  "Interview Scheduled",
-  "Offer Sent",
-  "Hired",
-  "Rejected"
-];
+import { CandidateFilters } from "@/components/CandidateFilters";
 
 export default async function DashboardPage({
-  searchParams
+  searchParams,
 }: {
   searchParams?: { q?: string; status?: string };
 }) {
@@ -27,11 +18,15 @@ export default async function DashboardPage({
   const store = await readStore();
   const query = (searchParams?.q ?? "").trim().toLowerCase();
   const status = (searchParams?.status ?? "All") as CandidateStatus | "All";
+
   const candidates = store.candidates
     .filter((candidate) => {
       const job = findJob(store.jobs, candidate.jobId);
       const text = `${candidate.name} ${job?.title ?? ""}`.toLowerCase();
-      return (!query || text.includes(query)) && (status === "All" || candidate.status === status);
+      return (
+        (!query || text.includes(query)) &&
+        (status === "All" || candidate.status === status)
+      );
     })
     .sort((a, b) => b.lastActivityAt.localeCompare(a.lastActivityAt));
 
@@ -40,23 +35,20 @@ export default async function DashboardPage({
       <div className="page-header">
         <div>
           <h1>Candidate Pipeline</h1>
-          <p className="muted">Track every candidate from resume intake through application submission.</p>
+          <p className="muted">
+            Track every candidate from resume intake through application
+            submission.
+          </p>
         </div>
         <Link className="button primary" href="/candidates/new">
           <Plus size={18} /> Add Candidate
         </Link>
       </div>
 
-      <form className="toolbar">
-        <input className="input" name="q" placeholder="Search name or role" defaultValue={searchParams?.q ?? ""} />
-        <select className="select" name="status" defaultValue={status}>
-          {statuses.map((item) => (
-            <option key={item} value={item}>
-              {item}
-            </option>
-          ))}
-        </select>
-      </form>
+      <CandidateFilters
+        defaultQuery={searchParams?.q ?? ""}
+        defaultStatus={searchParams?.status ?? "All"}
+      />
 
       {candidates.length ? (
         <section className="panel">
@@ -85,7 +77,11 @@ export default async function DashboardPage({
                     <td>
                       <StatusPill status={candidate.status} />
                     </td>
-                    <td>{new Intl.DateTimeFormat("en", { dateStyle: "medium" }).format(new Date(candidate.lastActivityAt))}</td>
+                    <td>
+                      {new Intl.DateTimeFormat("en", {
+                        dateStyle: "medium",
+                      }).format(new Date(candidate.lastActivityAt))}
+                    </td>
                   </tr>
                 );
               })}
@@ -95,7 +91,9 @@ export default async function DashboardPage({
       ) : (
         <section className="empty-state">
           <h2>No candidates found</h2>
-          <p className="muted">Adjust the search or filter to see more of the pipeline.</p>
+          <p className="muted">
+            Adjust the search or filter to see more of the pipeline.
+          </p>
         </section>
       )}
     </AppShell>
