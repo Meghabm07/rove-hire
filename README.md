@@ -13,8 +13,6 @@ The frontend uses Next.js App Router with server actions for form flows. The bac
 
 Docker Compose runs three services: `web`, `server`, and `postgres`. Resumes and generated PDFs are stored by the backend under `server/uploads` locally and in a Docker volume in Compose; at scale this should move to object storage such as S3, Cloudflare R2, or Supabase Storage.
 
-For a free deployment path, use Render or Railway for the Dockerized API, Vercel or Render for the frontend, and a free Neon or Supabase Postgres database. Set `DATABASE_URL` on the backend, `INTERNAL_API_URL` on the frontend for server-to-server calls, and `NEXT_PUBLIC_SERVER_URL` so browser download links point at the public API host.
-
 ## DB Schema
 
 ![alt text](image.png)
