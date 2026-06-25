@@ -37,6 +37,7 @@ docker compose up --build
 ```
 
 The frontend expects the backend at `INTERNAL_API_URL`, defaulting to `http://localhost:4000/api`.
+For Docker Compose, set `WEB_INTERNAL_API_URL` to the API URL reachable from the web container; it maps into the container as `INTERNAL_API_URL` and defaults to `http://server:4000/api`.
 
 ## PDF Generation
 
