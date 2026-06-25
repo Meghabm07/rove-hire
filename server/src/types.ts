@@ -7,6 +7,17 @@ export type CandidateStatus =
   | "Rejected";
 
 export type JobStatus = "Open" | "Closed";
+export type HrRole = "Admin" | "Recruiter" | "Interviewer";
+
+export type HrSession = {
+  user: {
+    id: string;
+    email: string;
+    name: string;
+    role: HrRole;
+  };
+  expiresAt: string;
+};
 
 export type TimelineEvent = {
   id: string;

@@ -8,13 +8,14 @@ import {
   submitApplication
 } from "../controllers/candidateController.js";
 import { createInterview } from "../controllers/interviewController.js";
+import { requireRoles } from "../middleware/authMiddleware.js";
 
 export const candidateRouter = Router();
 
-candidateRouter.post("/", createCandidate);
+candidateRouter.post("/", requireRoles("Admin", "Recruiter"), createCandidate);
 candidateRouter.get("/applications/:token", readApplication);
 candidateRouter.post("/applications/:token", submitApplication);
-candidateRouter.post("/:id/interviews", createInterview);
-candidateRouter.post("/:id/offers", createOfferDocuments);
-candidateRouter.patch("/:id/hired", markHired);
-candidateRouter.patch("/:id/rejected", markRejected);
+candidateRouter.post("/:id/interviews", requireRoles("Admin", "Recruiter"), createInterview);
+candidateRouter.post("/:id/offers", requireRoles("Admin", "Recruiter"), createOfferDocuments);
+candidateRouter.patch("/:id/hired", requireRoles("Admin", "Recruiter"), markHired);
+candidateRouter.patch("/:id/rejected", requireRoles("Admin", "Recruiter"), markRejected);

@@ -1,10 +1,13 @@
 import pg from "pg";
 import dotenv from "dotenv";
 import { randomUUID } from "crypto";
+import { hashPassword, isPasswordHash, verifyPassword } from "./password.js";
 import { seedStore } from "./seed.js";
 import type {
   Candidate,
   CandidateStatus,
+  HrRole,
+  HrSession,
   Interview,
   InterviewRecommendation,
   InterviewType,
@@ -148,6 +151,7 @@ export async function initDb() {
       email text NOT NULL UNIQUE,
       password text NOT NULL,
       name text NOT NULL,
+      role text NOT NULL DEFAULT 'Recruiter' CHECK (role IN ('Admin', 'Recruiter', 'Interviewer')),
       created_at timestamptz NOT NULL DEFAULT now()
     );
 
@@ -207,17 +211,51 @@ export async function initDb() {
     );
   `);
 
+  await pool.query(`
+    ALTER TABLE hr_users
+      ADD COLUMN IF NOT EXISTS role text NOT NULL DEFAULT 'Recruiter';
+
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1
+        FROM pg_constraint
+        WHERE conname = 'hr_users_role_check'
+      ) THEN
+        ALTER TABLE hr_users
+          ADD CONSTRAINT hr_users_role_check CHECK (role IN ('Admin', 'Recruiter', 'Interviewer'));
+      END IF;
+    END $$;
+  `);
+
+  const seededPasswordHash = await hashPassword("rovehire");
   await pool.query(
-    `INSERT INTO hr_users (id, email, password, name)
-     VALUES ($1, $2, $3, $4)
+    `INSERT INTO hr_users (id, email, password, name, role)
+     VALUES ($1, $2, $3, $4, $5)
      ON CONFLICT (email) DO NOTHING`,
-    ["hr-user-primary", "hr@rovedashcam.com", "rovehire", "ROVE HR"]
+    ["hr-user-primary", "hr@rovedashcam.com", seededPasswordHash, "ROVE HR", "Admin"]
   );
+
+  await upgradePlainTextSeedPassword();
 
   const { rows } = await pool.query<{ count: string }>("SELECT COUNT(*) FROM jobs");
   if (Number(rows[0].count) === 0) {
     await seedDb();
   }
+}
+
+async function upgradePlainTextSeedPassword() {
+  const { rows } = await pool.query<{ id: string; password: string }>(
+    "SELECT id, password FROM hr_users WHERE email = $1",
+    ["hr@rovedashcam.com"]
+  );
+  const user = rows[0];
+  if (!user || isPasswordHash(user.password)) return;
+
+  await pool.query("UPDATE hr_users SET password = $2, role = 'Admin' WHERE id = $1", [
+    user.id,
+    await hashPassword(user.password)
+  ]);
 }
 
 async function seedDb() {
@@ -503,13 +541,18 @@ export async function markCandidateRejected(candidateId: string, reason: string)
 }
 
 export async function createSession(email: string, password: string) {
-  const { rows } = await pool.query<{ id: string; email: string; name: string }>(
-    "SELECT id, email, name FROM hr_users WHERE lower(email) = lower($1) AND password = $2",
-    [email.trim(), password]
+  const { rows } = await pool.query<{ id: string; email: string; name: string; password: string; role: HrRole }>(
+    "SELECT id, email, name, password, role FROM hr_users WHERE lower(email) = lower($1)",
+    [email.trim()]
   );
 
   const user = rows[0];
   if (!user) return null;
+  if (!(await verifyPassword(password, user.password))) return null;
+
+  if (!isPasswordHash(user.password)) {
+    await pool.query("UPDATE hr_users SET password = $2 WHERE id = $1", [user.id, await hashPassword(password)]);
+  }
 
   const token = `sess_${randomUUID()}`;
   const expiresAt = new Date(Date.now() + 8 * 60 * 60 * 1000);
@@ -525,14 +568,15 @@ export async function createSession(email: string, password: string) {
     user: {
       id: user.id,
       email: user.email,
-      name: user.name
+      name: user.name,
+      role: user.role
     }
   };
 }
 
-export async function getSession(token: string) {
-  const { rows } = await pool.query<{ id: string; email: string; name: string; expires_at: string }>(
-    `SELECT hr_users.id, hr_users.email, hr_users.name, hr_sessions.expires_at
+export async function getSession(token: string): Promise<HrSession | null> {
+  const { rows } = await pool.query<{ id: string; email: string; name: string; role: HrRole; expires_at: string }>(
+    `SELECT hr_users.id, hr_users.email, hr_users.name, hr_users.role, hr_sessions.expires_at
      FROM hr_sessions
      JOIN hr_users ON hr_users.id = hr_sessions.user_id
      WHERE hr_sessions.token = $1 AND hr_sessions.expires_at > now()`,
@@ -546,7 +590,8 @@ export async function getSession(token: string) {
     user: {
       id: session.id,
       email: session.email,
-      name: session.name
+      name: session.name,
+      role: session.role
     },
     expiresAt: new Date(session.expires_at).toISOString()
   };

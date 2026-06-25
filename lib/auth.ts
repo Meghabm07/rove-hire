@@ -38,6 +38,7 @@ export async function signIn(email: string, password: string) {
   cookies().set(SESSION_COOKIE, session.token, {
     httpOnly: true,
     sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
     path: "/",
     expires: new Date(session.expiresAt),
     maxAge: 60 * 60 * 8

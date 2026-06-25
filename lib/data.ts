@@ -1,14 +1,24 @@
+import { cookies } from "next/headers";
 import { Candidate, CandidateStatus, JobOpening, Store, TimelineEvent } from "./types";
 
 const apiBaseUrl = process.env.INTERNAL_API_URL ?? "http://localhost:4000/api";
 const publicServerUrl = process.env.NEXT_PUBLIC_SERVER_URL ?? apiBaseUrl.replace(/\/api$/, "");
+const sessionCookie = "rove_hire_session";
 
 function nowIso() {
   return new Date().toISOString();
 }
 
+function authHeaders(): Record<string, string> {
+  const token = cookies().get(sessionCookie)?.value;
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 export async function readStore(): Promise<Store> {
-  const response = await fetch(`${apiBaseUrl}/store`, { cache: "no-store" });
+  const response = await fetch(`${apiBaseUrl}/store`, {
+    headers: authHeaders(),
+    cache: "no-store"
+  });
   if (!response.ok) {
     throw new Error(`Backend store request failed with ${response.status}`);
   }
@@ -23,7 +33,7 @@ export async function createJob(input: {
 }) {
   const response = await fetch(`${apiBaseUrl}/jobs`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify(input)
   });
   if (!response.ok) {
@@ -34,7 +44,7 @@ export async function createJob(input: {
 export async function updateJobStatus(id: string, status: "Open" | "Closed") {
   const response = await fetch(`${apiBaseUrl}/jobs/${id}/status`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify({ status })
   });
   if (!response.ok) {
@@ -55,7 +65,7 @@ export async function addCandidate(input: {
 }) {
   const response = await fetch(`${apiBaseUrl}/candidates`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify(input)
   });
   if (!response.ok) {
@@ -97,7 +107,7 @@ export async function scheduleInterview(input: {
 }) {
   const response = await fetch(`${apiBaseUrl}/candidates/${input.candidateId}/interviews`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify(input)
   });
   if (!response.ok) throw new Error(`Schedule interview request failed with ${response.status}`);
@@ -110,7 +120,7 @@ export async function completeInterview(input: {
 }) {
   const response = await fetch(`${apiBaseUrl}/interviews/${input.interviewId}/complete`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify(input)
   });
   if (!response.ok) throw new Error(`Complete interview request failed with ${response.status}`);
@@ -127,21 +137,24 @@ export async function generateOffer(input: {
 }) {
   const response = await fetch(`${apiBaseUrl}/candidates/${input.candidateId}/offers`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify(input)
   });
   if (!response.ok) throw new Error(`Generate offer request failed with ${response.status}`);
 }
 
 export async function markHired(candidateId: string) {
-  const response = await fetch(`${apiBaseUrl}/candidates/${candidateId}/hired`, { method: "PATCH" });
+  const response = await fetch(`${apiBaseUrl}/candidates/${candidateId}/hired`, {
+    method: "PATCH",
+    headers: authHeaders()
+  });
   if (!response.ok) throw new Error(`Mark hired request failed with ${response.status}`);
 }
 
 export async function markRejected(candidateId: string, reason: string) {
   const response = await fetch(`${apiBaseUrl}/candidates/${candidateId}/rejected`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify({ reason })
   });
   if (!response.ok) throw new Error(`Mark rejected request failed with ${response.status}`);
