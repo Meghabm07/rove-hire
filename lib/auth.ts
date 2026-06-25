@@ -3,6 +3,18 @@ import { cookies } from "next/headers";
 const SESSION_COOKIE = "rove_hire_session";
 const apiBaseUrl = process.env.INTERNAL_API_URL ?? "http://localhost:4000/api";
 
+function useSecureCookies() {
+  if (process.env.COOKIE_SECURE) {
+    return process.env.COOKIE_SECURE === "true";
+  }
+
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    return process.env.NEXT_PUBLIC_APP_URL.startsWith("https://");
+  }
+
+  return process.env.NODE_ENV === "production";
+}
+
 export async function isSignedIn() {
   const token = cookies().get(SESSION_COOKIE)?.value;
   if (!token) return false;
@@ -38,7 +50,7 @@ export async function signIn(email: string, password: string) {
   cookies().set(SESSION_COOKIE, session.token, {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: useSecureCookies(),
     path: "/",
     expires: new Date(session.expiresAt),
     maxAge: 60 * 60 * 8

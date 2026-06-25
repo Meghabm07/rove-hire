@@ -556,6 +556,7 @@ export async function createSession(email: string, password: string) {
 
   const token = `sess_${randomUUID()}`;
   const expiresAt = new Date(Date.now() + 8 * 60 * 60 * 1000);
+  await pool.query("DELETE FROM hr_sessions WHERE user_id = $1 OR expires_at <= now()", [user.id]);
   await pool.query("INSERT INTO hr_sessions (token, user_id, expires_at) VALUES ($1, $2, $3)", [
     token,
     user.id,
